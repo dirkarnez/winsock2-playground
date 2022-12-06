@@ -9,3 +9,4 @@ WIP, working for *http*://www.google.com but don't know why
 ### Tutorials
 - [Complete Winsock Client Code - Win32 apps | Microsoft Learn](https://learn.microsoft.com/en-US/windows/win32/winsock/complete-client-code)
 - [Liu233w/natchat: 类似飞鸽的局域网聊天，文件传输系统。综合创作训练3大作业](https://github.com/Liu233w/natchat)
+- [**SignalGarden/lib_netsockets: C++ light wrapper for POSIX and Winsock sockets with implementation of TCP client/server using JSON messages,and HTTP, FTP clients**](https://github.com/SignalGarden/lib_netsockets)
