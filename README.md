@@ -11,3 +11,4 @@ WIP, working for *http*://www.google.com but don't know why
 - [Liu233w/natchat: 类似飞鸽的局域网聊天，文件传输系统。综合创作训练3大作业](https://github.com/Liu233w/natchat)
 - [**SignalGarden/lib_netsockets: C++ light wrapper for POSIX and Winsock sockets with implementation of TCP client/server using JSON messages,and HTTP, FTP clients**](https://github.com/SignalGarden/lib_netsockets)
 - [jschwartzenberg/twinsock: Troy's Windows Sockets, a free Winsocks implementation, http://www.troy.rollo.name/opensource.html](https://github.com/jschwartzenberg/twinsock)
+- [**brechtsanders/proxysocket: Portable C library for proxy support, designed to be used as a drop-in replacement for connect().**](https://github.com/brechtsanders/proxysocket)
