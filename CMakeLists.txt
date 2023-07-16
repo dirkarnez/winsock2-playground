@@ -10,4 +10,4 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 add_executable(${PROJECT_NAME}
     "src/main.cpp")
 
-target_link_libraries(${PROJECT_NAME} gdi32 user32 ws2_32)
+target_link_libraries(${PROJECT_NAME} gdi32 user32 ws2_32 secur32)
