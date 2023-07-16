@@ -1,3 +1,4 @@
+#define SECURITY_KERNEL
 #define SECURITY_WIN32
 
 #ifndef UNICODE
@@ -213,8 +214,13 @@ int main()
 
         DWORD dwSSPIFlags = ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONFIDENTIALITY | ISC_RET_EXTENDED_ERROR | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_STREAM;
 
-        wchar_t *myString = L"www.google.com";
-        status = InitializeSecurityContext(&credHandle, NULL, myString, dwSSPIFlags, 0, SECURITY_NATIVE_DREP, &inBufferDesc, 0, NULL, &outBufferDesc, &dwSSPIOutFlags, &tsExpiryB);
+        wchar_t* myString = L"www.google.com"; // example wchar_t* value
+        SECURITY_STRING securityString;
+        securityString.Length = wcslen(myString) * sizeof(wchar_t);
+        securityString.MaximumLength = securityString.Length + sizeof(wchar_t);
+        securityString.Buffer = &myString;
+
+        status = InitializeSecurityContext(&credHandle, NULL, &securityString, dwSSPIFlags, 0, SECURITY_NATIVE_DREP, &inBufferDesc, 0, NULL, &outBufferDesc, &dwSSPIOutFlags, &tsExpiryB);
 
         if (outBuffers[0].cbBuffer != 0 && outBuffers[0].pvBuffer != NULL)
         {
