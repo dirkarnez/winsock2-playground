@@ -1,3 +1,5 @@
+#define SECURITY_WIN32
+
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -17,13 +19,14 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 80
 
-int main() {
+int main()
+{
     //----------------------
     // Declare and initialize variables.
     int iResult;
     WSADATA wsaData;
 
-    struct sockaddr_in clientService; 
+    struct sockaddr_in clientService;
 
     int recvbuflen = DEFAULT_BUFLEN;
     std::string sendbuf = "GET / HTTP/1.1\r\n\r\n";
@@ -31,8 +34,9 @@ int main() {
 
     //----------------------
     // Initialize Winsock
-    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-    if (iResult != NO_ERROR) {
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != NO_ERROR)
+    {
         wprintf(L"WSAStartup failed with error: %d\n", iResult);
         return 1;
     }
@@ -41,20 +45,16 @@ int main() {
     cred.dwVersion = SCHANNEL_CRED_VERSION;
     cred.grbitEnabledProtocols = SP_PROT_TLS1_CLIENT;
     cred.dwFlags |= SCH_CRED_NO_DEFAULT_CREDS | SCH_CRED_MANUAL_CRED_VALIDATION;
-        
-    HCERTSTORE hCertStore = CertOpenSystemStore(NULL, L"MY");
+
+    HCERTSTORE hCertStore = CertOpenSystemStore(NULL, L"CA");
     PCCERT_CONTEXT pCertContext = CertFindCertificateInStore(hCertStore, X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, 0, CERT_FIND_SUBJECT_STR, L"localhost", NULL);
 
     cred.paCred = &pCertContext;
     cred.cCreds = 1;
 
-    
-    UNICODE_STRING uStringUNISP_NAME;
-    RtlInitUnicodeString(&uStringUNISP_NAME, UNISP_NAME);
-    
     CredHandle credHandle;
-    TimeStamp tsExpiry;
-    SECURITY_STATUS statusd = AcquireCredentialsHandle(NULL, (PSECURITY_STRING)&uStringUNISP_NAME, SECPKG_CRED_OUTBOUND, NULL, &cred, NULL, NULL, &credHandle, &tsExpiry);
+    TimeStamp tsExpiryA;
+    SECURITY_STATUS statusd = AcquireCredentialsHandle(NULL, (wchar_t *)UNISP_NAME, SECPKG_CRED_OUTBOUND, NULL, &cred, NULL, NULL, &credHandle, &tsExpiryA);
     if (statusd != SEC_E_OK)
     {
         std::cout << "Failed to acquire credentials handle. Error code: " << statusd << std::endl;
@@ -64,14 +64,13 @@ int main() {
         return 1;
     }
 
-
-
     //----------------------
     // Create a SOCKET for connecting to server
-     SOCKET ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (ConnectSocket == INVALID_SOCKET) {
+    SOCKET ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (ConnectSocket == INVALID_SOCKET)
+    {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
-        
+
         CertFreeCertificateContext(pCertContext);
         CertCloseStore(hCertStore, 0);
 
@@ -88,13 +87,12 @@ int main() {
     // clientService.sin_addr.s_addr = *((unsigned long *)host->h_addr);
     // clientService.sin_port = htons( DEFAULT_PORT );
 
-
     addrinfo hints = {};
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
-    addrinfo* result = nullptr;
-    if (getaddrinfo("www.example.com", "https", &hints, &result) != 0)
+    addrinfo *result = nullptr;
+    if (getaddrinfo("www.google.com", "https", &hints, &result) != 0)
     {
         std::cout << "Failed to get address info." << std::endl;
         closesocket(ConnectSocket);
@@ -114,15 +112,15 @@ int main() {
         return 1;
     }
 
-//     //----------------------
-//     // Connect to server.
-//     iResult = connect( ConnectSocket, (SOCKADDR*) &clientService, sizeof(clientService) );
-//     if (iResult == SOCKET_ERROR) {
-//         wprintf(L"connect failed with error: %d\n", WSAGetLastError() );
-//         closesocket(ConnectSocket);
-//         WSACleanup();
-//         return 1;
-//   }
+    //     //----------------------
+    //     // Connect to server.
+    //     iResult = connect( ConnectSocket, (SOCKADDR*) &clientService, sizeof(clientService) );
+    //     if (iResult == SOCKET_ERROR) {
+    //         wprintf(L"connect failed with error: %d\n", WSAGetLastError() );
+    //         closesocket(ConnectSocket);
+    //         WSACleanup();
+    //         return 1;
+    //   }
 
     // //----------------------
     // // Send an initial buffer
@@ -169,7 +167,6 @@ int main() {
 
     // WSACleanup();
 
-
     SecBuffer outBuffers[2] = {};
     outBuffers[0].BufferType = SECBUFFER_TOKEN;
     outBuffers[0].cbBuffer = 0;
@@ -185,7 +182,7 @@ int main() {
     outBufferDesc.pBuffers = outBuffers;
 
     DWORD dwSSPIOutFlags = 0;
-    TimeStamp tsExpiry;
+    TimeStamp tsExpiryB;
 
     SecBuffer inBuffers[2] = {};
     inBuffers[0].BufferType = SECBUFFER_TOKEN;
@@ -204,7 +201,7 @@ int main() {
     SECURITY_STATUS status = SEC_E_OK;
     while (true)
     {
-        if (outBuffers[1].BufferType ==SECBUFFER_EXTRA && outBuffers[1].cbBuffer != 0)
+        if (outBuffers[1].BufferType == SECBUFFER_EXTRA && outBuffers[1].cbBuffer != 0)
         {
             memmove(outBuffers[0].pvBuffer, outBuffers[0].pvBuffer + (outBuffers[0].cbBuffer - outBuffers[1].cbBuffer), outBuffers[1].cbBuffer);
             outBuffers[0].cbBuffer = outBuffers[1].cbBuffer;
@@ -216,15 +213,12 @@ int main() {
 
         DWORD dwSSPIFlags = ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONFIDENTIALITY | ISC_RET_EXTENDED_ERROR | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_STREAM;
 
-        const wchar_t* myString = L"www.example.com";
-        UNICODE_STRING uString;
-        RtlInitUnicodeString(&uString, myString);
-        
-        status = InitializeSecurityContext(&credHandle, NULL, (PSECURITY_STRING)&uString, dwSSPIFlags, 0, SECURITY_NATIVE_DREP, &inBufferDesc, 0, NULL, &outBufferDesc, &dwSSPIOutFlags, &tsExpiry);
+        wchar_t *myString = L"www.google.com";
+        status = InitializeSecurityContext(&credHandle, NULL, myString, dwSSPIFlags, 0, SECURITY_NATIVE_DREP, &inBufferDesc, 0, NULL, &outBufferDesc, &dwSSPIOutFlags, &tsExpiryB);
 
         if (outBuffers[0].cbBuffer != 0 && outBuffers[0].pvBuffer != NULL)
         {
-            int bytesSent = send(ConnectSocket, reinterpret_cast<char*>(outBuffers[0].pvBuffer), outBuffers[0].cbBuffer, 0);
+            int bytesSent = send(ConnectSocket, reinterpret_cast<char *>(outBuffers[0].pvBuffer), outBuffers[0].cbBuffer, 0);
             if (bytesSent == SOCKET_ERROR)
             {
                 std::cout << "Failed to send data." << std::endl;
@@ -248,7 +242,7 @@ int main() {
                 inBuffers[0].cbBuffer = 0;
             }
 
-            int bytesReceived = recv(ConnectSocket, reinterpret_cast<char*>(inBuffers[0].pvBuffer), inBuffers[0].cbBuffer, 0);
+            int bytesReceived = recv(ConnectSocket, reinterpret_cast<char *>(inBuffers[0].pvBuffer), inBuffers[0].cbBuffer, 0);
             if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
             {
                 break;
@@ -276,7 +270,7 @@ int main() {
         std::cout << "Handshake failed. Error code: " << status << std::endl;
     }
 
-std::string request = "GET / HTTP/1.1\r\nHost: www.example.com\r\nConnection: close\r\n\r\n";
+    std::string request = "GET / HTTP/1.1\r\nHost: www.example.com\r\nConnection: close\r\n\r\n";
     int bytesSent = send(ConnectSocket, request.c_str(), request.length(), 0);
     if (bytesSent == SOCKET_ERROR)
     {
@@ -289,7 +283,7 @@ std::string request = "GET / HTTP/1.1\r\nHost: www.example.com\r\nConnection: cl
         return 1;
     }
 
-char response[1024] = {};
+    char response[1024] = {};
     int bytesReceived = 0;
     while ((bytesReceived = recv(ConnectSocket, response, sizeof(response), 0)) > 0)
     {
@@ -301,7 +295,8 @@ char response[1024] = {};
     {
         std::cout << "Failed to receive response." << std::endl;
     }
-FreeCredentialsHandle(&credHandle);
+
+    FreeCredentialsHandle(&credHandle);
     CertFreeCertificateContext(pCertContext);
     CertCloseStore(hCertStore, 0);
     closesocket(ConnectSocket);
